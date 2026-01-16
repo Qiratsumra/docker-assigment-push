@@ -2,18 +2,20 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Copy project files
+# Copy dependency definitions
 COPY pyproject.toml ./
-COPY main.py ./
+COPY uv.lock ./
 
 # Install uv
-RUN pip install uv
+RUN pip install --no-cache-dir uv
 
-# Sync dependencies
-RUN uv sync
+# Install dependencies into system Python (NO venv)
+RUN uv pip install --system
 
-# Expose port
+# Copy application code
+COPY main.py .
+
 EXPOSE 8000
 
-# Run uvicorn directly in the virtual environment
-CMD [".venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run uvicorn from system PATH
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
